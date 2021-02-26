@@ -2,22 +2,18 @@
 Creado por: Andrés Alba
 15 febrero 2021*/
 
-/*global google*/
-
-import { MAP } from 'react-google-maps/lib/constants';
 import React, { Component } from 'react';
 import './App.css';
 import {GoogleMap, withScriptjs, withGoogleMap} from 'react-google-maps';
 import {keyMap} from './constants'
 import {getLocations} from './geocoding/index'
 
+const latlng = {lat:4.64391,lng:-74.06361};
 
-//const latlng = {lat:4.6560663,lng:-74.0595918};
-const latlng = {lat:50.1,lng:-97.3};
-
-function Map() {
+function Map({ center }) {
+  
   return (
-	<GoogleMap defaultZoom={10} defaultCenter={latlng} onReady={console.log}/>
+	<GoogleMap defaultZoom={18} defaultCenter={latlng} center={center || latlng} />
   );
 }
 
@@ -27,32 +23,25 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {value: '', requestedAddress: []};
+    this.state = {value: '', center: null};
 
     this.handleChange = this.handleChange.bind(this);
     this.fetch_data = this.fetch_data.bind(this);
-    this.handleLocation = this.handleLocation.bind(this);
   }
 
-  componentDidMount () {
-    this.mapInstance = this.mapNode.context[MAP]
-    console.log(this.MAP)
-  }
 
   handleChange(event) {
     this.setState({value: event.target.value});
+    //console.log(event.target.value);
   }
 
   async fetch_data(event){
     const locations = await getLocations(this.state.value);
-    console.log(MAP);
-    this.setState({requestedAddress: locations})
+    this.setState({ 
+      center: locations[0].geometry.location
+     })
 
     event.preventDefault();
-  }
-  
-  handleLocation(location){
-    console.log(location, this._map)
   }
 
   render() {
@@ -61,16 +50,13 @@ class App extends Component {
       <div className= "item">
         <div>Ingrese la direccion</div>    
         <input type="text" value={this.state.value} onChange={this.handleChange} />
-        {this.state.requestedAddress.map((location)=>{
-          return <li onClick={()=>this.handleLocation(location)}>{location.formatted_address}</li>
-        })}
         <div className="item2">
-          <
-            WrappedMap googleMapURL={`https://maps.googleapis.com/maps/api/js?key=${keyMap}&callback=iniciarMap`}
+          <WrappedMap
+            googleMapURL={`https://maps.googleapis.com/maps/api/js?key=${keyMap}&callback=iniciarMap`}
             loadingElement={<div style={{height:"100%"}}/>}
             containerElement={<div style={{height:"100%"}}/>}
             mapElement={<div style={{height:"100%"}}/>}
-            ref={(el) => { this.mapNode = el }}
+            center={this.state.center}
           />
         </div>
         <button className="btn" onClick={this.fetch_data}>Capture</button>
